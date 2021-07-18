@@ -9,8 +9,8 @@ enum Direction { STOP = 0, UP, DOWN, LEFT, RIGHT };
 Direction dir;
 
 bool GameOver;
-int x = 2;
-int y = 2;
+int x;
+int y;
 
 
 void Setup()
@@ -23,6 +23,8 @@ void Setup()
 
 void view()
 {
+    cout << endl;
+
     for( int row = 0; row < 45; row++ )
     {
         if( row % 4 == 0 )
@@ -98,42 +100,48 @@ void Logic()
         case UP:
         {
             x -= 2;
-            cout << "X IS  " << x << endl;
             break;
         }
 
         case LEFT:
         {
             y -= 2;
-            cout << "Y IS  " << y << endl;
             break;
         }
 
         case RIGHT:
         {
             y += 2;
-            cout << "Y IS  " << y << endl;
             break;
         }
 
         case DOWN:
         {
-            cout << "X Before Is  " << x << endl;
             x += 2;
-            cout << "X After IS  " << x << endl;
             break;
         }
     }
 }
 
 
+void GameCheck()
+{
+    if( x == 22 && y == 22 )
+    {
+        GameOver = true;
+    }
+}
+
 int main()
 {
-    for( int counter = 0; counter < 8; counter++ )
+    Setup();
+
+    while( !GameOver )
     {
         view();
         Input();
         Logic();
+        GameCheck();
     }
 }
 
