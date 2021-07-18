@@ -1,29 +1,47 @@
 #include <iostream>
 #include <iomanip>
 #include <stdio.h>
+#include <unistd.h>
 
 using namespace std;
 
 
-enum Direction { STOP = 0, UP, DOWN, LEFT, RIGHT };
-Direction dir;
+class Board
+{
+    public:
+        
+        Board( bool );
 
-bool GameOver;
-int x;
-int y;
+        void View();
+        void Input();
+        void Logic();
+        void In_Board_Check();
+        void Game_Check();
+
+        bool GameOver;
+        bool Out_Of_Board;
 
 
-void Setup()
+    private:
+
+        enum Direction { STOP = 0, UP, DOWN, LEFT, RIGHT };
+        Direction dir;
+
+        int x;
+        int y;
+};
+
+
+Board :: Board( bool X )
+    : x( 2 ), y( 2 )
 {
     GameOver = false;
-    x = 2;
-    y = 2;
+    Out_Of_Board = false;
 }
 
-
-void view()
+void Board :: View()
 {
-    cout << endl;
+    system( "clear" );
 
     for( int row = 0; row < 45; row++ )
     {
@@ -35,6 +53,7 @@ void view()
             }
             cout << endl;
         }
+
         else
         {
             for( int column = 0; column <= 88; column++ )
@@ -62,7 +81,8 @@ void view()
 }
 
 
-void Input()
+
+void Board :: Input()
 {
     switch( getchar() )
     {
@@ -93,7 +113,7 @@ void Input()
 }
 
 
-void Logic()
+void Board :: Logic()
 {
     switch( dir )
     {
@@ -124,7 +144,36 @@ void Logic()
 }
 
 
-void GameCheck()
+void Board :: In_Board_Check()
+{
+    if( x == 2 && dir == UP )
+    {
+        Out_Of_Board = true;
+    }
+
+    else if( x == 42 && dir == DOWN )
+    {
+        Out_Of_Board = true;
+    }
+
+    else if(  y == 2 && dir == LEFT )
+    {
+        Out_Of_Board = true;
+    }
+
+    else if( y == 42 && dir == RIGHT )
+    {
+        Out_Of_Board = true;
+    }
+
+    else
+    {
+        Out_Of_Board = false;
+    }
+}
+
+
+void Board :: Game_Check()
 {
     if( x == 22 && y == 22 )
     {
@@ -132,17 +181,32 @@ void GameCheck()
     }
 }
 
+
 int main()
 {
-    Setup();
+    Board board( true );
 
-    while( !GameOver )
+    while( !(board.GameOver) )
     {
-        view();
-        Input();
-        Logic();
-        GameCheck();
+        board.View();
+        board.Input();
+        board.In_Board_Check();
+
+        if( board.Out_Of_Board == false )
+        {
+            board.Logic();
+            board.Game_Check();       
+        }
+
+        else
+        {
+            cout << "You Cant Go That Way You Getting Out Of The Board !" << endl;
+        }
+
+        sleep(2);
     }
+
+    board.View();
 }
 
 
