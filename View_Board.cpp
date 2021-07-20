@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <unistd.h>
+#include "Board.cpp"
 
 using namespace std;
 
@@ -45,69 +46,58 @@ void Board :: View()
 
     for( int row = 0; row < 45; row++ )
     {
-        if( row % 4 == 0 )
+        for( int column = 0; column < 89; column++ )
         {
-            for( int column = 0; column < 45; column++ )
+            if( row != x || column != 2*y)
             {
-                cout << '*' << " ";
+                cout << Matrix[row][column];
             }
-            cout << endl;
-        }
 
-        else
-        {
-            for( int column = 0; column <= 88; column++ )
+            else
             {
-                if( column % 8 == 0 )
-                {
-                    cout << '*';
-                }
-                else
-                {
-                    if( row == x && column == 2*y )
-                    {
-                        cout << 'M';
-                    }
-
-                    else
-                    {
-                        cout << ' ';
-                    }
-                }
+                cout << 'M';
             }
-            cout << endl;
         }
+        cout << endl;
     }
 }
 
 
-
 void Board :: Input()
 {
-    switch( getchar() )
+    char Movement;
+
+    while( true )
     {
-        case 'w':
+        cin >> Movement;
+
+        if( Movement == 'w' )
         {
             dir = UP;
             break;
         }
 
-        case 'a':
+        else if( Movement == 'a' )
         {
             dir = LEFT;
             break;
-        }
+        }  
 
-        case 'd':
+        else if( Movement == 'd' )
         {
             dir = RIGHT;
             break;
         }
 
-        case 's':
+        else if( Movement == 's')
         {
             dir = DOWN;
             break;
+        }
+
+        else
+        {
+            cout << "Incorrect Input" << endl;
         }
     }
 }
@@ -115,31 +105,24 @@ void Board :: Input()
 
 void Board :: Logic()
 {
-    switch( dir )
+    if( dir == UP )
     {
-        case UP:
-        {
-            x -= 2;
-            break;
-        }
+        x -= 4;
+    }
 
-        case LEFT:
-        {
-            y -= 2;
-            break;
-        }
+    else if( dir == LEFT )
+    {
+        y -= 4;
+    }
 
-        case RIGHT:
-        {
-            y += 2;
-            break;
-        }
+    else if( dir == RIGHT )
+    {
+        y += 4;
+    }
 
-        case DOWN:
-        {
-            x += 2;
-            break;
-        }
+    else if( dir == DOWN )
+    {
+        x += 4;
     }
 }
 
