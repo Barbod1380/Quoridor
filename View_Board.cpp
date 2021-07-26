@@ -22,14 +22,13 @@ class Board
         bool GameOver;
         bool Out_Of_Board;
 
+        int x, y;
+
 
     private:
 
         enum Direction { STOP = 0, UP, DOWN, LEFT, RIGHT };
         Direction dir;
-
-        int x;
-        int y;
 };
 
 
