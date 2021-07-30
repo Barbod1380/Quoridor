@@ -124,7 +124,7 @@ string Move :: Choose_Horizontal_Wall_Number()
     cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
     cout << "  *       *       *       *       *       *       *       *" << endl;
     cout << "  *       *       *       *       *       *       *       *" << endl;
-    cout << "  *   25  *   26  *   27  *   28  *   29  *   30  *   31  *" << endl;
+    cout << "  *   23  *   24  *   25  *   26  *   27  *   28  *   29  *" << endl;
     cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
     cout << "                          ." << endl;
     cout << "                          ." << endl;
@@ -196,10 +196,10 @@ int main()
 {
     int Players_Number;
     int Current_Players_Number;
-
-    string username;
     char Direction;
     char Choice;
+    string username;
+
     httplib::Client cli("localhost", 8080);
 
     Move move;
@@ -232,7 +232,7 @@ int main()
 
     while( Current_Players_Number < Players_Number )
     {
-        sleep(5);
+        sleep(7);
         cout << "Wait For Other Players" << endl;
 
         if( auto res = cli.Get( "/Status" ) )
@@ -256,6 +256,17 @@ int main()
         
         while( Current_Players_Number == Players_Number )
         {
+            auto res0 = cli.Post( "/WinnerCheck", items );
+
+            if( res0 -> status == 200 )
+            {
+                if( res0 -> body != "there is no winner yet" )
+                {
+                    cout << res0 -> body << endl;
+                    exit(1);
+                }
+            }
+        
             auto res = cli.Post( "/move", items );
 
             if( res -> status == 200 )
@@ -274,7 +285,6 @@ int main()
                         cout << "Incorrect Input" << endl;
                         cin >> Choice;
                     }
-
 
                     if( Choice == '1' )
                     {
@@ -337,7 +347,6 @@ int main()
                                 }
                             }
 
-
                             else if( Direction == 's' )
                             {
                                 auto res = cli.Post("/Move_Down", items);
@@ -352,7 +361,6 @@ int main()
                                     cout << res -> body << endl;
                                 }
                             }
-
 
                             else if( Direction == 'd' )
                             {
@@ -369,7 +377,6 @@ int main()
                                 }
                             }
 
-
                             else if( Direction == 'a')
                             {
                                 auto res = cli.Post("/Move_Left", items);
@@ -385,8 +392,20 @@ int main()
                                 }
                             }
                         }
+
                         auto res = cli.Get( "/ViewBoard" );
                         move.Open_Map( res -> body );
+
+                        auto res0 = cli.Post( "/WinnerCheck", items );
+
+                        if( res0 -> status == 200 )
+                        {
+                            if( res0 -> body != "there is no winner yet" )
+                            {
+                                cout << res0 -> body << endl;
+                                exit(1);
+                            }
+                        }
                     }
                 }
 

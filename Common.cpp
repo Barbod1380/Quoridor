@@ -263,7 +263,7 @@ void Board_Maker :: Set_Wall_On_Map( int wallnumber, string status )
         {
             column = ( wallnumber % 12 - 1 ) * 8;
         }
-        
+       
         Board[row][column]   = 'W';
         Board[row+1][column] = 'W';
         Board[row+2][column] = 'W';

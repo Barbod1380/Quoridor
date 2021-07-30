@@ -18,6 +18,9 @@ class Board_Changes
         void Make_Board();
         string MakePass( int, int );
 
+        bool Winner = false;
+        string Winner_Username;
+
 
     private:
         
@@ -277,11 +280,9 @@ int main(void)
         const auto& file2 = req.get_file_value( "WallStatus" );
         Wall_Status = file2.content;
 
-        cout << WallNumber << "  " << Wall_Status << endl;
-
         boardmaker.Set_Wall_On_Map( WallNumber, Wall_Status );
-        boardmaker.Board_View( Players_Number );
     });
+
 
     srv.Get("/ViewBoard", [&](const Request& req, Response& res )
     {
@@ -297,14 +298,44 @@ int main(void)
         res.set_content( GameBoard, "text/plain" );
     });
 
+
+    srv.Post("/WinnerCheck", [&](const Request& req, Response& res)
+    {
+        string username;
+
+        const auto& file = req.get_file_value( "username" );
+        username = file.content;
+
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == username )
+            {
+                if( boardmaker.Players_Location[index][0] == 22 && boardmaker.Players_Location[index][1] == 44 )
+                {
+                    boardchanges.Winner = true;
+                    boardchanges.Winner_Username = boardmaker.Players_Name[index][0];
+                }
+            }   
+        }
+
+        if( boardchanges.Winner == true && boardchanges.Winner_Username == username )
+        {
+            res.set_content( "!!  Congratulations You Win The Game  !!", "text/plain" );
+        }
+
+        else if( boardchanges.Winner == true && boardchanges.Winner_Username != username )
+        {
+            res.set_content( "!!  Sorry But You Lose The Game  !!", "text/plain" ); 
+        }
+
+        else
+        {
+            res.set_content( "there is no winner yet", "text/plain" );
+        }
+    });
+
     srv.listen("localhost", 8080);
 }
-
-
-
-
-
-
 
 
 
