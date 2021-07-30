@@ -1,8 +1,10 @@
+#include <iostream>
+#include <vector>
+#include <string>
 #include "httplib.h"
 #include "Common.cpp"
 
 using namespace std;
-
 
 class Move
 {
@@ -13,9 +15,12 @@ class Move
         void Choose_Wall_Type();
         void Set_Wall();
         void Logic();
+        void Open_Map( string );
         void Set_Wall_On_Map( char** & );
-        void View_Vertical( char** );
-        void View_Horizontal( char** );
+        string Choose_Vertical_Wall_Number();
+        string Choose_Horizontal_Wall_Number();
+
+        int  Open_Pass( string );
         bool In_Board_Check();
 
 
@@ -27,8 +32,8 @@ class Move
 
 
     private:
-
 };
+
 
 Move :: Move()
 {
@@ -85,89 +90,49 @@ void Move :: Choose_Wall_Type()
 }
 
 
-void Move :: Set_Wall()
+string Move :: Choose_Vertical_Wall_Number()
 {
-    while( true )
-    {
-        cin >> Position;
+    int Wall_Number;
 
-        if( Position == 'w' )
-        {
-            x -= 4;
-            break;
-        }
+    cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
+    cout << "  *       *       *       *       *       *       *       *" << endl;
+    cout << " 1*      2*      3*      4*      5*      6*      7*      8* ....." << endl;
+    cout << "  *       *       *       *       *       *       *       *" << endl;
+    cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl; 
+    cout << "  *       *       *       *       *       *       *       *" << endl;
+    cout << "13*     14*     15*     16*     17*     18*     19*     20* ....." << endl;
+    cout << "  *       *       *       *       *       *       *       *" << endl;
+    cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
+    cout << "                          ." << endl;
+    cout << "                          ." << endl;
+    cout << "                          ." << endl;
 
-        else if( Position == 'a' )
-        { 
-            y -= 4;
-            break;
-        } 
-
-        else if( Position == 'd' )
-        {
-            y += 4;
-            break;
-        }
-
-        else if( Position == 's' )
-        {
-            x += 4;
-            break;
-        }
-
-        else if( Position == 'p' )
-        {
-            Set = true;
-            break;
-         }
-
-        else
-        {
-            cout << "Incorrect Input" << endl;
-        }
-    }
+    cout << "Inter Wall Number" << endl;
+    cin >> Wall_Number;
+    return( to_string(Wall_Number) );
 }
 
 
-void Move :: View_Horizontal( char** Matrix )
+string Move :: Choose_Horizontal_Wall_Number()
 {
-    for( int row = 0; row < 45; row++ )
-    {
-        for( int column = 0; column < 89; column++ )
-        {
-            if( row != x - 1 || column != 2*y )
-            {
-                cout << Matrix[row][column];
-            }
+    int Wall_Number;
 
-            else
-            {
-                cout << '^';
-            }
-        }
-        cout << endl;
-    }
-}
+    cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
+    cout << "  *   1   *   2   *   3   *   4   *   5   *   6   *   7   *" << endl;
+    cout << "  *       *       *       *       *       *       *       * ....." << endl;
+    cout << "  *   12  *   13  *   14  *   15  *   16  *   17  *   18  *" << endl;
+    cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
+    cout << "  *       *       *       *       *       *       *       *" << endl;
+    cout << "  *       *       *       *       *       *       *       *" << endl;
+    cout << "  *   25  *   26  *   27  *   28  *   29  *   30  *   31  *" << endl;
+    cout << "  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" << endl;
+    cout << "                          ." << endl;
+    cout << "                          ." << endl;
+    cout << "                          ." << endl;
 
-
-void Move :: View_Vertical( char** Matrix )
-{
-    for( int row = 0; row < 45; row++ )
-    {
-        for( int column = 0; column < 89; column++ )
-        {
-            if( row != x || column != 2*y + 3 )
-            {
-                cout << Matrix[row][column];
-            }
-
-            else
-            {
-                cout << '>';
-            }
-        }
-        cout << endl;
-    }
+    cout << "Inter Wall Number" << endl;
+    cin >> Wall_Number;
+    return( to_string(Wall_Number) );
 }
 
 
@@ -204,135 +169,265 @@ bool Move :: In_Board_Check()
 }
 
 
+void Move :: Open_Map( string board )
+{
+    for( int row = 0; row < 45; row++ )
+    {
+        for( int column = 0; column < 89; column++ )
+        {
+            cout << board[(row*89) + column];
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+
+int Move :: Open_Pass( string password )
+{
+    int passint;
+    passint = stoi( password );
+    return( passint );
+}
+
+
 
 int main()
 {
-    string username;
+    int Players_Number;
+    int Current_Players_Number;
 
+    string username;
     char Direction;
-    int Choice;
+    char Choice;
     httplib::Client cli("localhost", 8080);
 
     Move move;
-    Board_Maker Bmaker;
 
     cout << "Inter Your Username" << endl;
     cin >> username;
 
 
-    if( auto res = cli.Get("/join") )
+    httplib :: MultipartFormDataItems items = {
+        { "username", username } ,
+    };
+
+
+    if( auto res = cli.Post("/join", items) )
     {
         if( res -> status == 200 )
         {
-            cout << res -> body << " " << username << endl;
-            Bmaker.Board_View();
-            cout << endl;
+            int OpenPass;
+            cout << "You Join The Game Succesfully" << endl;
+
+            OpenPass = move.Open_Pass( res -> body );
+ 
+            Players_Number = OpenPass / 10;
+            Current_Players_Number = OpenPass % 10;
+
+            cout << "Your Number Is: " << Current_Players_Number << endl;
         }
     }
 
-    cout << "Wall Or Move? (Inter 1 for Move and 2 for Wall) " << endl;
-    cout << "1) Wall" << endl;
-    cout << "2) Move" << endl;
 
-    cin >> Choice;
-
-
-    while( Choice != 1 && Choice != 2 )
+    while( Current_Players_Number < Players_Number )
     {
-        cout << "Incorrect Input" << endl;
-        cin >> Choice;
+        sleep(5);
+        cout << "Wait For Other Players" << endl;
+
+        if( auto res = cli.Get( "/Status" ) )
+        {
+            if( res -> status == 200 )
+            {
+                int OpenPass;
+                OpenPass = move.Open_Pass( res -> body );
+                Players_Number = OpenPass / 10;
+                Current_Players_Number = OpenPass % 10;
+                cout << "Current Players Number Is " << Current_Players_Number << endl;
+            }
+        }
     }
 
 
-    if( Choice == 1 )
+    if( Current_Players_Number == Players_Number )
     {
-        move.Choose_Wall_Type();
-
-        if( move.Wall_Status == "Vertical" )
+        auto new_res = cli.Get( "/ViewBoard" );
+        move.Open_Map( new_res -> body );
+        
+        while( Current_Players_Number == Players_Number )
         {
-            while( true )
-            {
-                move.Set = false;
-                move.View_Vertical( Bmaker.Board );
-                move.Set_Wall();
-                bool status = move.In_Board_Check();
+            auto res = cli.Post( "/move", items );
 
-                if( move.Set == true )
+            if( res -> status == 200 )
+            {
+                if( res -> body == "yes" )
                 {
-                    Bmaker.Set_Wall_On_Map( move.x, move.y, 'V' );
-                    Bmaker.Board_View();
-                    move.Set = false;
-                    break;
+                    auto new_res = cli.Get( "/ViewBoard" );
+                    move.Open_Map( new_res -> body );
+                    cout << "Wall Or Move? (Inter 1 for Wall and 2 for Move) " << endl;
+                    cout << "1) Wall" << endl;
+                    cout << "2) Move" << endl;
+                    cin >> Choice;
+
+                    while( Choice != '1' && Choice != '2' )
+                    {
+                        cout << "Incorrect Input" << endl;
+                        cin >> Choice;
+                    }
+
+
+                    if( Choice == '1' )
+                    {
+                        move.Choose_Wall_Type();
+
+                        if( move.Wall_Status == "Vertical" )
+                        {
+                            string wallnumber;
+                            wallnumber = move.Choose_Vertical_Wall_Number();
+
+                            httplib::MultipartFormDataItems items1 = 
+                            {
+                                { "WallNumber", wallnumber },
+                                { "WallStatus", "Vertical" }
+                            };
+                            
+                            cli.Post( "/Set_Wall_On_Map", items1 );
+                            auto res = cli.Get( "/ViewBoard" );
+                            move.Open_Map( res -> body );
+                            cli.Post( "/Change", items );
+                        }
+
+                        else if( move.Wall_Status == "Horizontal" )
+                        {
+                            string wallnumber;
+                            wallnumber = move.Choose_Horizontal_Wall_Number();
+
+                            httplib::MultipartFormDataItems items2 = {
+                                { "WallNumber", wallnumber   },
+                                { "WallStatus", "Horizontal" }
+                            };
+
+                            cli.Post( "/Set_Wall_On_Map", items2 );
+                            auto res = cli.Get( "/ViewBoard" );
+                            move.Open_Map( res -> body );
+                            cli.Post( "/Change", items );
+                        }
+                    }
+
+                    else if( Choice ==  '2' )
+                    {
+                        bool flag = true;
+
+                        while( flag == true )
+                        {
+                            Direction = move.Select_Movement_Direction();
+
+                            if( Direction == 'w' )
+                            {
+                                auto res = cli.Post("/Move_Up", items);
+
+                                if( res -> status == 200 && res -> body != "Error" )
+                                {
+                                    cout << res -> body << endl;
+                                    flag = false;
+                                }
+                                else
+                                {
+                                    cout << res -> body << endl;
+                                }
+                            }
+
+
+                            else if( Direction == 's' )
+                            {
+                                auto res = cli.Post("/Move_Down", items);
+
+                                if( res -> status == 200 && res -> body != "Error" )
+                                {
+                                    cout << res -> body << endl;
+                                    flag = false;
+                                }
+                                else
+                                {
+                                    cout << res -> body << endl;
+                                }
+                            }
+
+
+                            else if( Direction == 'd' )
+                            {
+                                auto res = cli.Post("/Move_Right", items);
+
+                                if( res -> status == 200 && res -> body != "Error" )
+                                {
+                                    cout << res -> body << endl;
+                                    flag = false;
+                                }
+                                else
+                                {
+                                    cout << res -> body << endl;
+                                }
+                            }
+
+
+                            else if( Direction == 'a')
+                            {
+                                auto res = cli.Post("/Move_Left", items);
+
+                                if( res -> status == 200 && res -> body != "Error" )
+                                {
+                                    cout << res -> body << endl;
+                                    flag = false;
+                                }
+                                else
+                                {
+                                    cout << res -> body << endl;
+                                }
+                            }
+                        }
+                        auto res = cli.Get( "/ViewBoard" );
+                        move.Open_Map( res -> body );
+                    }
+                }
+
+                else if( res -> body == "no" )
+                {
+                    cout << "You Are Not Allowed To Move" << endl;
+                    sleep(10);
                 }
             }
-        }
 
-        else if( move.Wall_Status == "Horizontal" )
-        {
-            while( true )
+            else
             {
-                move.Set = false;
-                move.View_Horizontal( Bmaker.Board );
-                move.Set_Wall();
-                bool status = move.In_Board_Check();
-
-                if( move.Set == true )
-                {
-                    Bmaker.Set_Wall_On_Map( move.x, move.y, 'H' );
-                    Bmaker.Board_View();
-                    move.Set = false;
-                    break;
-                }
+                cout << res.error() << endl; 
             }
         }
+        auto newres = cli.Get( "/ViewBoard" );
+        move.Open_Map( newres -> body );
     }
+} 
 
 
-    else if( Choice ==  2 )
-    {
-        Direction = move.Select_Movement_Direction();
-
-        if( Direction == 'w' )
-        {
-            auto res = cli.Get("/Move_Up");
-
-            if( res -> status == 200 )
-            {
-                cout << res -> body << endl;
-            }
-        }
 
 
-        else if( Direction == 's' )
-        {
-            auto res = cli.Get("/Move_Down");
-
-            if( res -> status == 200 )
-            {
-                cout << res -> body << endl;
-            }
-        }
 
 
-        else if( Direction == 'd' )
-        {
-            auto res = cli.Get("/Move_Right");
-
-            if( res -> status == 200 )
-            {
-                cout << res -> body << endl;
-            }
-        }
 
 
-        else if( Direction == 'a')
-        {
-            auto res = cli.Get("/Move_Left");
 
-            if( res -> status == 200 )
-            {
-                cout << res -> body << endl;
-            }
-        }
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

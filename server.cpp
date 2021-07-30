@@ -1,12 +1,13 @@
 #include <httplib.h>
 #include <iostream>
-#include "Common.h"
+#include <string>
+#include "Common.cpp"
  
 using namespace std;
 using namespace httplib;
 
-extern int Current_Players_Number;
-extern int Players_Number;
+int Players_Number;
+int Current_Players_Number;
 
 class Board_Changes
 {
@@ -14,11 +15,8 @@ class Board_Changes
         
         Board_Changes();
 
-        char** Board;
-        int**  Players_Location;
-
         void Make_Board();
-        void Set_Players_Location();
+        string MakePass( int, int );
 
 
     private:
@@ -31,29 +29,12 @@ Board_Changes :: Board_Changes()
 }
 
 
-void Board_Changes :: Set_Players_Location()
+string Board_Changes :: MakePass( int PlayersNum, int Current_Players_Numb )
 {
-    Players_Location = new int* [4];
+    int Answer = PlayersNum*10 + Current_Players_Numb;
+    string FinalAnswer = to_string( Answer );
 
-    for( int index = 0; index < 4; index++ )
-    {
-        Players_Location[index] = new int[2];
-    }
-
-    for( int Row = 0; Row < 4; Row++ )
-    {
-        for( int Column = 0; Column < 2; Column++ )
-        {
-            if( ( Row == 0 && Column == 0 ) || ( Row == 0 && Column == 1 ) || ( Row == 1 && Column == 0 ) || ( Row == 2 && Column == 1) )
-            {
-                Players_Location[Row][Column] = 0;
-            }
-            else
-            {
-                Players_Location[Row][Column] = 10;
-            }
-        }
-    }
+    return( FinalAnswer );
 }
 
 
@@ -62,44 +43,262 @@ int main(void)
 {
     Server srv;
 
-    cout << "Inter The Number Of Player" << endl;
+    Board_Maker boardmaker;
+    Board_Changes boardchanges;
+
+    cout << "Input Number Of Players" << endl;
     cin >> Players_Number;
-    
-    srv.Get("/join", [](const Request& req, Response& res)
-    { 
-        cout << "New Player Join The Game" << endl;
-        Current_Players_Number ++;
-        cout << "Current Player Number Is:  " << Current_Players_Number << endl;
-        res.set_content("Welcome", "text/plain");
-    }); 
 
-
-    srv.Get("/Move_Up", [](const Request& req, Response& res)
+    while( Players_Number > 4 || Players_Number < 2 )
     {
-        res.set_content("You Move Up Succesfully", "text/plain");
+        cout << "Players Number should Be 2, 3 or 4" << endl;
+        cin >> Players_Number;
+    }
+
+    boardmaker.Set_Players_On_Map( Players_Number );
+    
+
+    srv.Post("/join", [&](const auto& req, auto& res)
+    {
+        int index = 0;
+        string new_response;
+
+        while( boardmaker.Players_Name[index][0].size() != 0 && Current_Players_Number < Players_Number )
+        {
+            index++;
+        }
+
+        const auto& file = req.get_file_value( "username" );
+        boardmaker.Players_Name[index][0] = file.content;
+        Current_Players_Number++;
+        cout << file.content << " Join The Game" << endl;
+
+        new_response = boardchanges.MakePass( Players_Number, Current_Players_Number );
+        res.set_content( new_response, "text/plain" );
+    });
+
+
+    srv.Post("/move", [&](const auto& req, auto& res)
+    {
+        string PlayerName;
+
+        const auto& file = req.get_file_value( "username" );
+        PlayerName = file.content;
+        
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == PlayerName )
+            {
+                if( boardmaker.Movement_Allowed[index][0] == true )
+                {
+                    res.set_content( "yes", "text/plain" );
+                }
+                
+                else
+                {
+                    res.set_content( "no", "text/plain" );
+                }
+            }
+        }
+    });
+
+
+    srv.Get( "/Status", [&](const Request& req, Response& res)
+    {
+        string new_response;
+        new_response = boardchanges.MakePass( Players_Number, Current_Players_Number );
+        res.set_content( new_response, "text/plain" );
+    });
+
+
+
+    srv.Post("/Move_Up", [&](const Request& req, Response& res)
+    {
+        string PlayerName;
+        string Status;
+
+        const auto& file = req.get_file_value( "username" );
+        PlayerName = file.content;
+
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == PlayerName )
+            {
+                if( boardmaker.Movement_Allowed[index][0] == true )
+                {
+                    Status = boardmaker.Can_Go_There( index, 'w' );
+
+                    if( Status == "Allowed" )
+                    {
+                        boardmaker.Players_Movement( index, 'w' );   
+                        boardmaker.Movement_Allowed[index][0] = false;
+                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                        res.set_content( "You Move Up Succesfully", "text/plain" );
+                    }
+
+                    else
+                    {
+                        res.set_content( "Error", "text/plain" );
+                    }
+                }
+            }
+        }   
     });     
     
 
-    srv.Get("/Move_Down", [](const Request& req, Response& res)
+    srv.Post("/Move_Down", [&](const Request& req, Response& res)
     {
-        res.set_content("You Move Down Succesfully", "text/plain");
+        string PlayerName;
+        string Status;
+
+        const auto& file = req.get_file_value( "username" );
+        PlayerName = file.content;
+
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == PlayerName )
+            {
+                if( boardmaker.Movement_Allowed[index][0] == true )
+                {
+                    Status = boardmaker.Can_Go_There( index, 's' );
+
+                    if( Status == "Allowed" )
+                    {
+                        boardmaker.Players_Movement( index, 's' );   
+                        boardmaker.Movement_Allowed[index][0] = false;
+                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                    }   
+
+                    else
+                    {
+                        res.set_content( "Error", "text/plain" );
+                    }
+                }
+            }
+        } 
     });     
     
 
-    srv.Get("/Move_Left", [](const Request& req, Response& res)
+    srv.Post("/Move_Left", [&](const Request& req, Response& res)
     {
-        res.set_content("You Move Left Succesfully", "text/plain");
+        string PlayerName;
+        string Status;
+
+        const auto& file = req.get_file_value( "username" );
+        PlayerName = file.content;
+
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == PlayerName )
+            {
+                if( boardmaker.Movement_Allowed[index][0] == true )
+                {
+                    Status = boardmaker.Can_Go_There( index, 'a' );
+
+                    if( Status == "Allowed" )
+                    {
+                        boardmaker.Players_Movement( index, 'a' );   
+                        boardmaker.Movement_Allowed[index][0] = false;
+                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                    }
+
+                    else
+                    {
+                        res.set_content( "Error", "text/plain" );
+                    }
+                }
+            }
+        }
     }); 
 
 
-    srv.Get("/Move_Right", [](const Request& req, Response& res)
+    srv.Post("/Move_Right", [&](const Request& req, Response& res)
     {
-        res.set_content("You Move Right Succesfully", "text/plain");
+        string PlayerName;
+        string Status;
+
+        const auto& file = req.get_file_value( "username" );
+        PlayerName = file.content;
+
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == PlayerName )
+            {
+                if( boardmaker.Movement_Allowed[index][0] == true )
+                {
+                    Status = boardmaker.Can_Go_There( index, 'd' );
+                    
+                    if( Status == "Allowed" )
+                    {
+                        boardmaker.Players_Movement( index, 'd' );   
+                        boardmaker.Movement_Allowed[index][0] = false;
+                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                    }
+
+                    else
+                    {
+                        res.set_content( "Error", "text/plain" );
+                    }
+                }
+            }
+        }
     }); 
+
+
+    srv.Post("/Change", [&](const Request& req, Response& res)
+    {
+        string PlayerName;
+
+        const auto& file = req.get_file_value( "username" );
+        PlayerName = file.content;
+
+        for( int index = 0; index < 4; index++ )
+        {
+            if( boardmaker.Players_Name[index][0] == PlayerName )
+            {
+                if( boardmaker.Movement_Allowed[index][0] == true )
+                {
+                    boardmaker.Movement_Allowed[index][0] = false;
+                    boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                }
+            }
+        }
+    });
+
+
+    srv.Post("/Set_Wall_On_Map", [&](const Request& req, Response& res)
+    {
+        int WallNumber;
+        string Wall_Status;
+
+        const auto& file = req.get_file_value( "WallNumber" );
+        WallNumber = stoi( file.content );
+
+        const auto& file2 = req.get_file_value( "WallStatus" );
+        Wall_Status = file2.content;
+
+        cout << WallNumber << "  " << Wall_Status << endl;
+
+        boardmaker.Set_Wall_On_Map( WallNumber, Wall_Status );
+        boardmaker.Board_View( Players_Number );
+    });
+
+    srv.Get("/ViewBoard", [&](const Request& req, Response& res )
+    {
+        string GameBoard = "";
+
+        for( int row = 0; row < 45; row++ )
+        {
+            for( int column = 0; column < 89; column++ )
+            {
+                GameBoard += boardmaker.Board[row][column];
+            }
+        }
+        res.set_content( GameBoard, "text/plain" );
+    });
 
     srv.listen("localhost", 8080);
 }
-
 
 
 

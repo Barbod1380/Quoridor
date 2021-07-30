@@ -1,13 +1,32 @@
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include "Common.h"
 
 using namespace std;
 
 
-
 Board_Maker :: Board_Maker()
 {
+
+    //Players_Location_Table;
+
+    Players_Location = new int* [4];
+ 
+    for( int index = 0; index < 4; index++ )
+    {
+        Players_Location[index] = new int[2];
+    }
+    Players_Location[0][0] = 2;
+    Players_Location[0][1] = 4;
+    Players_Location[1][0] = 2;
+    Players_Location[1][1] = 84;
+    Players_Location[2][0] = 42;
+    Players_Location[2][1] = 4;
+    Players_Location[3][0] = 42;
+    Players_Location[3][1] = 84;
+
+
     //Game_Table
 
     int row = 0;
@@ -61,45 +80,149 @@ Board_Maker :: Board_Maker()
         row += 1;
     }
 
-    //Players_Table
+    //Players_Name
 
-    Players_Location = new int* [4];
+    Players_Name = new string*[4];
 
     for( int index = 0; index < 4; index++ )
     {
-        Players_Location[index] = new int[2];
+        Players_Name[index] = new string[1];
     }
-    Players_Location[0][0] = 2;
-    Players_Location[0][1] = 4;
-    Players_Location[1][0] = 2;
-    Players_Location[1][1] = 84;
-    Players_Location[2][0] = 42;
-    Players_Location[2][1] = 4;
-    Players_Location[3][0] = 42;
-    Players_Location[3][1] = 84;
+
+
+    //Movement_Allowed
+
+    Movement_Allowed = new bool*[4];
+
+    for( int index = 0; index < 4; index++ )
+    {
+        Movement_Allowed[index] = new bool[1];
+        
+        if( index == 0 )
+        {
+            Movement_Allowed[index][0] = true;
+        }
+
+        else
+        {
+            Movement_Allowed[index][0] = false;
+        }
+    }
 }
+
+
+void Board_Maker :: Set_Players_On_Map( int PlayersNum )
+{
+    if( PlayersNum == 2 )
+    {
+        Board[Players_Location[0][0]][Players_Location[0][1]] = char(1);
+        Board[Players_Location[1][0]][Players_Location[1][1]] = char(2);
+    }
+
+    else if( PlayersNum == 3 )
+    {
+        Board[Players_Location[0][0]][Players_Location[0][1]] = char(1);
+        Board[Players_Location[1][0]][Players_Location[1][1]] = char(2);
+        Board[Players_Location[2][0]][Players_Location[2][1]] = char(3);
+    }
+
+    else if( PlayersNum == 4 )
+    {
+        Board[Players_Location[0][0]][Players_Location[0][1]] = char(1);
+        Board[Players_Location[1][0]][Players_Location[1][1]] = char(2);
+        Board[Players_Location[2][0]][Players_Location[2][1]] = char(3);
+        Board[Players_Location[3][0]][Players_Location[3][1]] = char(4);
+    }
+}
+
+
+std :: string Board_Maker :: Can_Go_There( int PlayerNum, char Direction )
+{
+    if( Direction == 'w' )
+    {
+        if( Board[Players_Location[PlayerNum][0] - 2][Players_Location[PlayerNum][1]] == 'W' )
+        {
+            return( "You Cant Go There Because of The Wall");
+        }
+
+        if( Players_Location[PlayerNum][0] == 2 )
+        {
+            return("You Cant Go There You Should be In Board");
+        }
+    }
+    
+    else if( Direction == 's' )
+    {
+        if( Board[Players_Location[PlayerNum][0] + 2][Players_Location[PlayerNum][1]] == 'W' )
+        {
+            return( "You Cant Go There Because of The Wall");
+        }
+
+        if( Players_Location[PlayerNum][0] == 42  )
+        {
+            return("You Cant Go There You Should be In Board");
+        }
+    }
+
+    else if( Direction == 'd' )
+    {
+        if( Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1] + 4] == 'W' )
+        {
+            return( "You Cant Go There Because of The Wall");
+        }
+
+        if( Players_Location[PlayerNum][1] == 84 )
+        {
+            return("You Cant Go There You Should be In Board");
+        }
+    }
+    
+    else if( Direction == 'a' )
+    {
+        if( Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1] - 4] == 'W' )
+        {
+            return( "You Cant Go There Because of The Wall");
+        }
+
+        if( Players_Location[PlayerNum][1] == 4 )
+        {
+            return("You Cant Go There You Should be In Board");
+        }
+    }
+    return( "Allowed" );
+}
+
+
 
 
 void Board_Maker :: Players_Movement( int PlayerNum, char Direction )
 {
     if( Direction == 'w' )
     {
-        Players_Location[PlayerNum-1][0] -= 1;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = ' ';
+        Players_Location[PlayerNum][0] -= 4;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = char(PlayerNum+1);
     }
 
     else if( Direction == 's' )
     {
-        Players_Location[PlayerNum-1][0] += 1;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = ' ';
+        Players_Location[PlayerNum][0] += 4;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = char(PlayerNum+1);
     }
 
     else if( Direction == 'd' )
     {
-        Players_Location[PlayerNum-1][1] += 1;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = ' ';
+        Players_Location[PlayerNum][1] += 8;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = char(PlayerNum+1);
     }
 
     else if( Direction == 'a' )
     {
-        Players_Location[PlayerNum-1][1] -= 1;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = ' ';
+        Players_Location[PlayerNum][1] -= 8;
+        Board[Players_Location[PlayerNum][0]][Players_Location[PlayerNum][1]] = char(PlayerNum+1);
     }
 
     else
@@ -109,63 +232,56 @@ void Board_Maker :: Players_Movement( int PlayerNum, char Direction )
 }
 
 
-void Board_Maker :: Set_Wall_On_Map( int x, int y, char status )
+void Board_Maker :: Set_Wall_On_Map( int wallnumber, string status )
 {
-    if( status == 'H' )
+    if( status == "Horizontal" )
     {
-        Board[x-2][2*y-4] = 'W';
-        Board[x-2][2*y-2] = 'W';
-        Board[x-2][2*y]   = 'W';
-        Board[x-2][2*y+2] = 'W';
-        Board[x-2][2*y+4] = 'W';
+        int row;
+        int column;
+        row = (( wallnumber - 1 ) / 11 ) * 4;
+        column = ( wallnumber % 11 ) * 8;
+
+        Board[row][column]   = 'W';
+        Board[row][column-2] = 'W';
+        Board[row][column-4] = 'W';
+        Board[row][column-6] = 'W';
+        Board[row][column-8] = 'W';
     }
 
-    else if( status == 'V' )
+    else if( status == "Vertical" )
     {
-        Board[x-2][2*y+4] = 'W';
-        Board[x-1][2*y+4] = 'W';
-        Board[x][2*y+4]   = 'W';
-        Board[x+1][2*y+4] = 'W';
-        Board[x+2][2*y+4] = 'W';
+        int row;
+        int column;
+        row = (( wallnumber - 1) / 12) * 4;
+
+        if( wallnumber % 12 == 0 )
+        {
+            column = 88;
+        }
+
+        else
+        {
+            column = ( wallnumber % 12 - 1 ) * 8;
+        }
+        
+        Board[row][column]   = 'W';
+        Board[row+1][column] = 'W';
+        Board[row+2][column] = 'W';
+        Board[row+3][column] = 'W';
+        Board[row+4][column] = 'W';
     }
 }
 
 
-void Board_Maker :: Board_View()
+void Board_Maker :: Board_View( int playersnumber )
 {
-    system("clear");
-
     for( int row = 0; row < 45; row++ )
     {
         for( int column = 0; column < 89; column++ )
         {
-            if( row == Players_Location[0][0] && column == Players_Location[0][1] )
-            {
-                cout << '1';
-            }
-
-            else if( row == Players_Location[1][0] && column == Players_Location[1][1] )
-            {
-                cout << '2';
-            }
-
-            else if( row == Players_Location[2][0] && column == Players_Location[2][1] )
-            {
-                cout << '3';
-            }
-
-            else if( row == Players_Location[3][0] && column == Players_Location[3][1] )
-            {
-                cout << '4';
-            }  
-
-            else
-            {
-                cout << Board[row][column];
-            }  
+            cout << Board[row][column];
         }
         cout << endl;
     }
     cout << endl;
-    cout << "Current Is" << Current_Players_Number << endl;
 }
