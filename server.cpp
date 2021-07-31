@@ -78,7 +78,7 @@ int main(void)
 
             const auto& file = req.get_file_value( "username" );
             boardmaker.Players_Name[index][0] = file.content;
-            boardchanges.Current_Players_Number++;
+            boardchanges.Current_Players_Number += 1;
             cout << file.content << " Join The Game" << endl;
 
             new_response = boardchanges.MakePass( boardchanges.Players_Number, boardchanges.Current_Players_Number );

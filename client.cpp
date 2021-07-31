@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "httplib.h"
-#include "Common.cpp"
+#include "Common.h"
 
 using namespace std;
 
@@ -438,7 +438,7 @@ int main()
                 else if( res -> body == "no" )
                 {
                     cout << "You Are Not Allowed To Move" << endl;
-                    sleep(10);
+                    sleep(8);
                 }
             }
 
