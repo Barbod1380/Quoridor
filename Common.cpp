@@ -232,7 +232,7 @@ void Board_Maker :: Players_Movement( int PlayerNum, char Direction )
 void Board_Maker :: Set_Wall_On_Map( int wallnumber, string status )
 {
     if( status == "Horizontal" )
-    {
+   {
         int row;
         int column;
         row = (( wallnumber - 1 ) / 11 ) * 4;

@@ -17,4 +17,3 @@ class Board_Maker
 
     private:
 };
-
