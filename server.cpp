@@ -6,8 +6,6 @@
 using namespace std;
 using namespace httplib;
 
-int Players_Number;
-int Current_Players_Number;
 
 class Board_Changes
 {
@@ -15,15 +13,15 @@ class Board_Changes
         
         Board_Changes();
 
+        bool Winner = false;
+        string Winner_Username;
+        int Players_Number;
+        int Current_Players_Number; 
+
         void Make_Board();
         string MakePass( int, int );
 
-        bool Winner = false;
-        string Winner_Username;
-
-
-    private:
-        
+    private:       
 };
 
 
@@ -50,34 +48,42 @@ int main(void)
     Board_Changes boardchanges;
 
     cout << "Input Number Of Players" << endl;
-    cin >> Players_Number;
+    cin >> boardchanges.Players_Number;
 
-    while( Players_Number > 4 || Players_Number < 2 )
+    while( boardchanges.Players_Number > 4 || boardchanges.Players_Number < 2 )
     {
         cout << "Players Number should Be 2, 3 or 4" << endl;
-        cin >> Players_Number;
+        cin >> boardchanges.Players_Number;
     }
 
-    boardmaker.Set_Players_On_Map( Players_Number );
+    boardmaker.Set_Players_On_Map( boardchanges.Players_Number );
     
 
     srv.Post("/join", [&](const auto& req, auto& res)
     {
-        int index = 0;
-        string new_response;
-
-        while( boardmaker.Players_Name[index][0].size() != 0 && Current_Players_Number < Players_Number )
+        if( boardchanges.Current_Players_Number >= boardchanges.Players_Number )
         {
-            index++;
+            res.set_content( "You Cant Join The Game", "text/plain" );
         }
 
-        const auto& file = req.get_file_value( "username" );
-        boardmaker.Players_Name[index][0] = file.content;
-        Current_Players_Number++;
-        cout << file.content << " Join The Game" << endl;
+        else
+        {
+            int index = 0;
+            string new_response;
 
-        new_response = boardchanges.MakePass( Players_Number, Current_Players_Number );
-        res.set_content( new_response, "text/plain" );
+            while( boardmaker.Players_Name[index][0].size() != 0 && boardchanges.Current_Players_Number < boardchanges.Players_Number )
+            {
+                index++;
+            }
+
+            const auto& file = req.get_file_value( "username" );
+            boardmaker.Players_Name[index][0] = file.content;
+            boardchanges.Current_Players_Number++;
+            cout << file.content << " Join The Game" << endl;
+
+            new_response = boardchanges.MakePass( boardchanges.Players_Number, boardchanges.Current_Players_Number );
+            res.set_content( new_response, "text/plain" );
+        }
     });
 
 
@@ -109,7 +115,7 @@ int main(void)
     srv.Get( "/Status", [&](const Request& req, Response& res)
     {
         string new_response;
-        new_response = boardchanges.MakePass( Players_Number, Current_Players_Number );
+        new_response = boardchanges.MakePass( boardchanges.Players_Number, boardchanges.Current_Players_Number );
         res.set_content( new_response, "text/plain" );
     });
 
@@ -135,7 +141,7 @@ int main(void)
                     {
                         boardmaker.Players_Movement( index, 'w' );   
                         boardmaker.Movement_Allowed[index][0] = false;
-                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                        boardmaker.Movement_Allowed[(index+1) % boardchanges.Current_Players_Number ][0] = true;
                         res.set_content( "You Move Up Succesfully", "text/plain" );
                     }
 
@@ -169,7 +175,7 @@ int main(void)
                     {
                         boardmaker.Players_Movement( index, 's' );   
                         boardmaker.Movement_Allowed[index][0] = false;
-                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                        boardmaker.Movement_Allowed[(index+1) % boardchanges.Current_Players_Number ][0] = true;
                     }   
 
                     else
@@ -202,7 +208,7 @@ int main(void)
                     {
                         boardmaker.Players_Movement( index, 'a' );   
                         boardmaker.Movement_Allowed[index][0] = false;
-                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                        boardmaker.Movement_Allowed[(index+1) % boardchanges.Current_Players_Number ][0] = true;
                     }
 
                     else
@@ -235,7 +241,7 @@ int main(void)
                     {
                         boardmaker.Players_Movement( index, 'd' );   
                         boardmaker.Movement_Allowed[index][0] = false;
-                        boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                        boardmaker.Movement_Allowed[(index+1) % boardchanges.Current_Players_Number ][0] = true;
                     }
 
                     else
@@ -262,7 +268,7 @@ int main(void)
                 if( boardmaker.Movement_Allowed[index][0] == true )
                 {
                     boardmaker.Movement_Allowed[index][0] = false;
-                    boardmaker.Movement_Allowed[(index+1) % Current_Players_Number ][0] = true;
+                    boardmaker.Movement_Allowed[(index+1) % boardchanges.Current_Players_Number ][0] = true;
                 }
             }
         }

@@ -22,13 +22,11 @@ class Move
         int  Open_Pass( string );
         bool In_Board_Check();
 
-
         string Wall_Status;
         bool Set = false;
         char Position;
         int x;
         int y;
-
 
     private:
 };
@@ -214,7 +212,13 @@ int main()
 
     if( auto res = cli.Post("/join", items) )
     {
-        if( res -> status == 200 )
+        if( res -> status == 200 && res -> body == "You Cant Join The Game" )
+        {
+            cout << res -> body << endl;
+            exit(1);
+        }
+
+        else if( res -> status == 200 )
         {
             int OpenPass;
             cout << "You Join The Game Succesfully" << endl;

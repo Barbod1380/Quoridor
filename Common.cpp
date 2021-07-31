@@ -8,7 +8,6 @@ using namespace std;
 
 Board_Maker :: Board_Maker()
 {
-
     //Players_Location_Table;
 
     Players_Location = new int* [4];
@@ -81,7 +80,6 @@ Board_Maker :: Board_Maker()
     }
 
     //Players_Name
-
     Players_Name = new string*[4];
 
     for( int index = 0; index < 4; index++ )
@@ -91,7 +89,6 @@ Board_Maker :: Board_Maker()
 
 
     //Movement_Allowed
-
     Movement_Allowed = new bool*[4];
 
     for( int index = 0; index < 4; index++ )
